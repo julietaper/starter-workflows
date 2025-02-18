@@ -1,4 +1,4 @@
-name: Prueba de GitHub Actions
+name: Test GitHub Actions - Multiple Jobs
 
 on:
   push:
@@ -9,21 +9,56 @@ on:
       - main
 
 jobs:
-  test:
+  job1:
+    name: Primer Job - Info del Sistema
     runs-on: ubuntu-latest
 
     steps:
       - name: Clonar el repositorio
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
+      - name: Mostrar el sistema operativo
+        run: echo "El runner está en $(uname -a)"
+
+      - name: Mostrar la fecha y hora del sistema
+        run: date
+
+  job2:
+    name: Segundo Job - Prueba en Diferentes Entornos
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Mostrar el sistema operativo
+        run: echo "Ejecutando en ${{ runner.os }}"
+
+      - name: Mostrar el directorio actual
+        run: pwd
+
+  job3:
+    name: Tercer Job - Depende del Primer Job
+    needs: job1
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Simular un proceso largo
+        run: sleep 10 && echo "Proceso completado"
+
+      - name: Crear un archivo de salida
+        run: echo "Este es un archivo generado en el job" > output.txt
+
+      - name: Subir archivo como artefacto
+        uses: actions/upload-artifact@v3
         with:
-          node-version: 18
-
-      - name: Instalar dependencias
-        run: npm install || echo "No hay package.json, omitiendo instalación"
-
-      - name: Ejecutar test de prueba
-        run: echo "¡Prueba ejecutada con éxito!"
+          name: archivo-output
+          path: output.txt
 
